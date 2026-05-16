@@ -1,0 +1,9 @@
+sentence-transformers
+chromadb
+requests
+fastapi
+uvicorn
+pydantic-ai
+python-dotenv
+sqlalchemy
+huggingface-hub
