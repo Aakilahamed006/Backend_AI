@@ -2,62 +2,81 @@ from app.services.ai_service import ask_ai
 
 from app.services.db_service import execute_query
 
+from app.services.parameter_service import (
+    extract_parameters
+)
+
 from app.services.vector_service import (
     store_query,
     search_similar_question
 )
 
 
+SIMILARITY_THRESHOLD = 0.40
+
+
 def backend_brain(question: str):
 
     # -----------------------------------
-    # STEP 1: SEARCH VECTOR DATABASE
+    # EXTRACT PARAMETERS
+    # -----------------------------------
+    parameters = extract_parameters(question)
+
+    print("\nPARAMETERS:")
+    print(parameters)
+
+    # -----------------------------------
+    # SEARCH VECTOR DB
     # -----------------------------------
     search_result = search_similar_question(
         question
     )
 
-    documents = search_result.get(
-        "documents",
-        []
-    )
+    documents = search_result.get("documents", [])
+    distances = search_result.get("distances", [])
 
     # -----------------------------------
-    # STEP 2: IF SIMILAR QUESTION EXISTS
+    # VECTOR MATCH
     # -----------------------------------
-    if documents and documents[0]:
+    if (
+        documents
+        and documents[0]
+        and distances
+        and distances[0]
+    ):
 
-        print("\nFOUND IN VECTOR DATABASE")
+        similarity_distance = distances[0][0]
+        print("\nSIMILARITY DISTANCE:")
+        print(similarity_distance)
 
-        stored_sql = documents[0][0]
+        if similarity_distance < SIMILARITY_THRESHOLD:
 
-        print("REUSED SQL:")
-        print(stored_sql)
+            stored_sql = documents[0][0]
 
-        return execute_query(
-            sql_query=stored_sql,
-            question=question
-        )
+            print("\nREUSED SQL:")
+            print(stored_sql)
+
+            return execute_query(
+                sql_query=stored_sql,
+                question=question,
+                parameters=parameters
+            )
 
     # -----------------------------------
-    # STEP 3: OTHERWISE USE AI
+    # OTHERWISE USE AI
     # -----------------------------------
-    print("\nNOT FOUND IN VECTOR DATABASE")
-
     sql_query = ask_ai(question)
 
-    # -----------------------------------
-    # STEP 4: EXECUTE SQL
-    # -----------------------------------
     result = execute_query(
         sql_query=sql_query,
-        question=question
+        question=question,
+        parameters=parameters
     )
 
     # -----------------------------------
-    # STEP 5: STORE SUCCESSFUL QUERY
+    # STORE SUCCESSFUL TEMPLATE
     # -----------------------------------
-    if isinstance(result, list):
+    if "error" not in result:
 
         store_query(
             question=question,

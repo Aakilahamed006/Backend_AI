@@ -1,7 +1,10 @@
 import os
 import requests
 from dotenv import load_dotenv
-from app.services.Teach_Ai_DataBase import get_database_schema
+
+from app.services.Teach_Ai_DataBase import (
+    get_database_schema
+)
 
 load_dotenv()
 
@@ -13,49 +16,90 @@ headers = {
     "Authorization": f"Bearer {HF_TOKEN}",
     "Content-Type": "application/json"
 }
+
+
 # ----------------------------
-# 2. AI FUNCTION
+# AI FUNCTION
 # ----------------------------
 def ask_ai(question: str):
 
     schema = get_database_schema()
 
     payload = {
+
         "model": "deepseek-ai/DeepSeek-V4-Pro:novita",
+
         "messages": [
+
             {
                 "role": "system",
+
                 "content": f"""
 You are an expert SQL generator.
 
 RULES:
-- Only return SQL
+- Return ONLY SQL
 - No explanation
 - No markdown
-- Use ONLY this database schema:
+- No comments
 
+IMPORTANT:
+- ALWAYS generate parameterized SQL
+- NEVER hardcode values directly
+
+GOOD EXAMPLE:
+INSERT INTO users (name, age)
+VALUES (:name, :age)
+
+BAD EXAMPLE:
+INSERT INTO users (name, age)
+VALUES ('Aakil', 23)
+
+FOR SELECT:
+GOOD:
+SELECT name FROM users
+WHERE age > :age
+
+DATABASE SCHEMA:
 {schema}
 """
             },
+
             {
                 "role": "user",
                 "content": question
             }
         ],
+
         "temperature": 0
     }
 
-    response = requests.post(API_URL, headers=headers, json=payload)
+    response = requests.post(
+        API_URL,
+        headers=headers,
+        json=payload
+    )
 
-    print("STATUS:", response.status_code)
-    print("TEXT:", response.text)
+    print("\nSTATUS:")
+    print(response.status_code)
+
+    print("\nRAW RESPONSE:")
+    print(response.text)
 
     data = response.json()
 
     if "choices" in data:
-        return data["choices"][0]["message"]["content"]
 
-    return data
+        sql_query = data["choices"][0]["message"]["content"]
+
+        print("\nGENERATED SQL:")
+        print(sql_query)
+
+        return sql_query
+
+    return {
+        "error": data
+    }
 
 
 # ----------------------------
@@ -63,7 +107,9 @@ RULES:
 # ----------------------------
 if __name__ == "__main__":
 
-    result = ask_ai("Get all users who placed orders")
+    result = ask_ai(
+        "Add a new user [name=Zorrow,age=35]"
+    )
 
     print("\nFINAL RESULT:")
     print(result)

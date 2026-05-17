@@ -1,3 +1,4 @@
+import re
 import chromadb
 
 from sentence_transformers import SentenceTransformer
@@ -28,6 +29,18 @@ collection = client.get_or_create_collection(
 
 
 # -----------------------------
+# NORMALIZE QUESTION
+# -----------------------------
+def normalize_question(question: str):
+
+    return re.sub(
+        r"\[.*?\]",
+        "",
+        question
+    ).strip()
+
+
+# -----------------------------
 # STORE QUESTION + SQL
 # -----------------------------
 def store_query(
@@ -35,13 +48,18 @@ def store_query(
     sql_query: str
 ):
 
-    embedding = embedding_model.encode(
+    # REMOVE VALUES INSIDE []
+    normalized_question = normalize_question(
         question
+    )
+
+    embedding = embedding_model.encode(
+        normalized_question
     ).tolist()
 
     collection.add(
 
-        ids=[question],
+        ids=[normalized_question],
 
         embeddings=[embedding],
 
@@ -49,7 +67,7 @@ def store_query(
 
         metadatas=[
             {
-                "question": question
+                "question": normalized_question
             }
         ]
     )
@@ -64,8 +82,13 @@ def search_similar_question(
     question: str
 ):
 
-    embedding = embedding_model.encode(
+    # REMOVE VALUES INSIDE []
+    normalized_question = normalize_question(
         question
+    )
+
+    embedding = embedding_model.encode(
+        normalized_question
     ).tolist()
 
     results = collection.query(

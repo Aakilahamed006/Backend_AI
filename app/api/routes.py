@@ -1,18 +1,34 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional
 
-from app.services.ai_service import ask_ai
 from app.services.backendbrain import backend_brain
 
 
 router = APIRouter()
 
-@router.get("/")
-def home():
-    question = (
-       "add user where name is nafil and age is 35"
 
-    )
+class QuestionRequest(BaseModel):
 
-    response = backend_brain(question)
+    question: Optional[str] = None
 
-    return response
+
+@router.post("/ask")
+def home(request: QuestionRequest):
+
+    # -----------------------------
+    # VALIDATION CHECK
+    # -----------------------------
+    if not request.question or request.question.strip() == "":
+
+        raise HTTPException(
+            status_code=400,
+            detail="Question cannot be empty"
+        )
+
+    response = backend_brain(request.question)
+
+    return {
+        "success": True,
+        "data": response
+    }
