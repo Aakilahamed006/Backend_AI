@@ -15,7 +15,10 @@ from app.services.vector_service import (
 SIMILARITY_THRESHOLD = 0.40
 
 
-def backend_brain(question: str):
+def backend_brain(
+    question: str,
+    permissions: dict
+):
 
     # -----------------------------------
     # EXTRACT PARAMETERS
@@ -32,8 +35,15 @@ def backend_brain(question: str):
         question
     )
 
-    documents = search_result.get("documents", [])
-    distances = search_result.get("distances", [])
+    documents = search_result.get(
+        "documents",
+        []
+    )
+
+    distances = search_result.get(
+        "distances",
+        []
+    )
 
     # -----------------------------------
     # VECTOR MATCH
@@ -46,6 +56,7 @@ def backend_brain(question: str):
     ):
 
         similarity_distance = distances[0][0]
+
         print("\nSIMILARITY DISTANCE:")
         print(similarity_distance)
 
@@ -57,9 +68,14 @@ def backend_brain(question: str):
             print(stored_sql)
 
             return execute_query(
+
                 sql_query=stored_sql,
+
                 question=question,
-                parameters=parameters
+
+                parameters=parameters,
+
+                permissions=permissions
             )
 
     # -----------------------------------
@@ -67,10 +83,21 @@ def backend_brain(question: str):
     # -----------------------------------
     sql_query = ask_ai(question)
 
+    print("\nAI GENERATED SQL:")
+    print(sql_query)
+
+    # -----------------------------------
+    # EXECUTE SQL
+    # -----------------------------------
     result = execute_query(
+
         sql_query=sql_query,
+
         question=question,
-        parameters=parameters
+
+        parameters=parameters,
+
+        permissions=permissions
     )
 
     # -----------------------------------
@@ -79,7 +106,9 @@ def backend_brain(question: str):
     if "error" not in result:
 
         store_query(
+
             question=question,
+
             sql_query=sql_query
         )
 
