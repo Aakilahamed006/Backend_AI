@@ -1,94 +1,24 @@
-BLOCKED_KEYWORDS = [
-
+FORBIDDEN_KEYWORDS = [
     "drop",
     "truncate",
     "alter",
-    "exec",
-    "execute",
-    "attach",
-    "detach",
-    "pragma"
-
+    "create database",
+    "drop database",
 ]
 
 
-def validate_sql(
-    sql_query: str,
-    permissions: dict
-):
+def validate_sql(sql_query: str) -> dict:
+    """
+    Checks for forbidden SQL keywords.
+    Always returns {"allowed": bool, "reason": str | None}
+    """
+    lower_sql = sql_query.lower()
 
-    sql_lower = sql_query.lower().strip()
-
-    # -----------------------------------
-    # BLOCK DANGEROUS KEYWORDS
-    # -----------------------------------
-    for keyword in BLOCKED_KEYWORDS:
-
-        if keyword in sql_lower:
-
+    for keyword in FORBIDDEN_KEYWORDS:
+        if keyword in lower_sql:
             return {
                 "allowed": False,
-                "reason": f"{keyword} is permanently blocked"
+                "reason": f"Forbidden SQL keyword detected: '{keyword}'",
             }
 
-    # -----------------------------------
-    # BLOCK MULTI STATEMENT
-    # -----------------------------------
-    if ";" in sql_lower:
-
-        return {
-            "allowed": False,
-            "reason": "Multiple statements blocked"
-        }
-
-    query_type = sql_lower.split()[0]
-
-    # -----------------------------------
-    # DELETE CONTROL
-    # -----------------------------------
-    if query_type == "delete":
-
-        if not permissions.get(
-            "allow_delete",
-            False
-        ):
-
-            return {
-                "allowed": False,
-                "reason": "DELETE permission denied"
-            }
-
-        # SAFETY
-        if "where" not in sql_lower:
-
-            return {
-                "allowed": False,
-                "reason": "DELETE without WHERE blocked"
-            }
-
-    # -----------------------------------
-    # UPDATE CONTROL
-    # -----------------------------------
-    if query_type == "update":
-
-        if not permissions.get(
-            "allow_update",
-            False
-        ):
-
-            return {
-                "allowed": False,
-                "reason": "UPDATE permission denied"
-            }
-
-        # SAFETY
-        if "where" not in sql_lower:
-
-            return {
-                "allowed": False,
-                "reason": "UPDATE without WHERE blocked"
-            }
-
-    return {
-        "allowed": True
-    }
+    return {"allowed": True, "reason": None}

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
+
 from pydantic import BaseModel
-from typing import Optional
+
+from typing import Optional, List
 
 from app.services.backendbrain import (
     backend_brain
@@ -10,30 +12,30 @@ router = APIRouter()
 
 
 # -----------------------------------
-# PERMISSION MODEL
+# DEV REQUEST MODEL
 # -----------------------------------
-class Permissions(BaseModel):
-
-    allow_delete: bool = False
-
-    allow_update: bool = False
-
-
-# -----------------------------------
-# REQUEST MODEL
-# -----------------------------------
-class QuestionRequest(BaseModel):
+class DevRequest(BaseModel):
 
     question: Optional[str] = None
 
-    permissions: Permissions = Permissions()
+    role: Optional[str] = None
+
+    authentication_required: Optional[bool] = None
+
+    allowed_roles: Optional[List[str]] = None
+
+    allow_delete: Optional[bool] = None
+
+    allow_update: Optional[bool] = None
+
+
 
 
 # -----------------------------------
-# API ENDPOINT
+# DEV API
 # -----------------------------------
-@router.post("/ask")
-def home(request: QuestionRequest):
+@router.post("/dev/ask")
+def dev_ask(request: DevRequest):
 
     # -----------------------------------
     # VALIDATION
@@ -51,16 +53,21 @@ def home(request: QuestionRequest):
     # -----------------------------------
     # BACKEND BRAIN
     # -----------------------------------
-    response = backend_brain(
+    return backend_brain(
 
         question=request.question,
 
-        permissions=request.permissions.dict()
+        role = request.role,
+
+        authentication_required=request.authentication_required,
+
+        allowed_roles=request.allowed_roles,
+
+        allow_delete=request.allow_delete,
+
+        allow_update=request.allow_update,
+
+
+
+
     )
-
-    return {
-
-        "success": True,
-
-        "data": response
-    }
