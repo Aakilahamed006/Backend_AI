@@ -4,9 +4,8 @@ from pydantic import BaseModel
 
 from typing import Optional, List
 
-from app.services.backendbrain import (
-    backend_brain
-)
+
+from app.services.backend_brain_live import backendbrain_live
 
 router = APIRouter()
 
@@ -28,7 +27,7 @@ class LiveRequest(BaseModel):
 
     allow_update: Optional[bool] = None
 
-    approved: Optional[bool] = None
+
 
 
 
@@ -55,7 +54,7 @@ def live_ask(request: LiveRequest):
     # -----------------------------------
     # BACKEND BRAIN
     # -----------------------------------
-    return backend_brain(
+    return backendbrain_live(
 
         question=request.question,
 
