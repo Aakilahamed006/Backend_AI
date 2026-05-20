@@ -10,7 +10,7 @@ load_dotenv()
 
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 
-HF_TOKEN = os.getenv("HF_TOKEN")
+HF_TOKEN = os.getenv("HF_TOKEN_1")
 
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}",
