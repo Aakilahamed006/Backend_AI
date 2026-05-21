@@ -15,8 +15,8 @@ Role-based access control
 Query permission rules
 Safe SQL execution
 
+<img width="1408" height="768" alt="architecture (2)" src="https://github.com/user-attachments/assets/929b212a-f077-4367-838b-917dda9d1bcd" />
 
-<img width="752" height="460" alt="image" src="https://github.com/user-attachments/assets/db84cfb7-37e9-4462-9aa1-72211fadb919" />
 
 
 📦 Features
