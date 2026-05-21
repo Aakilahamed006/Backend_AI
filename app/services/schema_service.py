@@ -9,7 +9,7 @@ def get_database_schema():
 
     tables = inspector.get_table_names()
 
-    print("TABLES:", tables)
+   # print("TABLES:", tables)# you can uncomment the case of debugging
 
     if not tables:
         return "No tables found in database"
@@ -34,7 +34,7 @@ def get_database_schema():
                     f"{fk['referred_table']}({fk['referred_columns']})\n"
                 )
 
-    print("SCHEMA GENERATED:\n", schema_text)
+   # print("SCHEMA GENERATED:\n", schema_text) #uncomment this to see the entire databse schema
 
     return schema_text
 

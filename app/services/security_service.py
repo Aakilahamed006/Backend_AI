@@ -1,3 +1,11 @@
+from fastapi import Header
+
+from app.services.auth_service import (
+    verify_token
+)
+
+
+
 FORBIDDEN_KEYWORDS = [
     "drop",
     "truncate",
@@ -37,3 +45,36 @@ def validate_sql(sql_query: str) -> dict:
             }
 
     return {"allowed": True, "reason": None}
+
+
+
+
+# -----------------------------------
+# OPTIONAL JWT AUTH
+# -----------------------------------
+def get_current_user_optional(
+
+    authorization: str = Header(None)
+):
+
+    # -----------------------------------
+    # NO TOKEN
+    # -----------------------------------
+    if not authorization:
+
+        return None
+
+    try:
+
+        token = authorization.replace(
+            "Bearer ",
+            ""
+        )
+
+        payload = verify_token(token)
+
+        return payload
+
+    except:
+
+        return None
