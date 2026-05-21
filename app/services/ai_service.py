@@ -2,9 +2,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
-from app.services.Teach_Ai_DataBase import (
-    get_database_schema
-)
+
+from app.services.schema_service import get_database_schema
 
 load_dotenv()
 

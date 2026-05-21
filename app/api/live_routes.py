@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException
 
+from fastapi import Header
+
 from pydantic import BaseModel
 
 from typing import Optional, List
 
-from app.services.backendbrain import (
-    backend_brain
+from app.services.backend_brain_live import (
+    backendbrain_live
 )
 
 router = APIRouter()
@@ -18,54 +20,62 @@ class LiveRequest(BaseModel):
 
     question: Optional[str] = None
 
-    role: Optional[str] = None
-
-    authentication_required: Optional[bool] = None
-
-    allowed_roles: Optional[List[str]] = None
 
     allow_delete: Optional[bool] = None
 
     allow_update: Optional[bool] = None
-
-    approved: Optional[bool] = None
-
-
 
 
 # -----------------------------------
 # LIVE API
 # -----------------------------------
 @router.post("/live/ask")
-def live_ask(request: LiveRequest):
+def live_ask(
+
+    request: LiveRequest,
+
+    authorization: Optional[str] = Header(None)
+):
 
     # -----------------------------------
     # VALIDATION
     # -----------------------------------
     if (
+
         not request.question
+
         or request.question.strip() == ""
     ):
 
         raise HTTPException(
+
             status_code=400,
+
             detail="Question cannot be empty"
+        )
+
+    # -----------------------------------
+    # EXTRACT JWT TOKEN
+    # -----------------------------------
+    token = None
+
+    if authorization:
+
+        token = authorization.replace(
+            "Bearer ",
+            ""
         )
 
     # -----------------------------------
     # BACKEND BRAIN
     # -----------------------------------
-    return backend_brain(
+    return backendbrain_live(
 
         question=request.question,
 
-        role=request.role,
-
-        authentication_required=request.authentication_required,
+        token=token,
 
         allow_delete=request.allow_delete,
 
         allow_update=request.allow_update,
-
-
     )
